@@ -15,27 +15,23 @@ int main(int argc, char** argv)
   static tf::TransformListener listener;
 
   // Get ROS params
-  bool sim_robot;
   double targ_x, targ_y, targ_z;
+  int num_iterations;
   std::string camera_link;
-  nh.param<bool>("calibration_node/sim_robot", sim_robot, true);
-  nh.param<double>("calibration_node/targ_x", targ_x, 0.3048);
+  nh.param<double>("calibration_node/targ_x", targ_x, 0.0);
   nh.param<double>("calibration_node/targ_y", targ_y, 0.0);
   nh.param<double>("calibration_node/targ_z", targ_z, 0.0);
+  nh.param<int>("calibration_node/num_iterations", num_iterations, 60);
   nh.param<std::string>("calibration_node/camera_link", camera_link, "camera_link");
 
   // Update location of AR tag
   tf::Transform targ_transform;
   tf::Quaternion targ_q;
-  if (!sim_robot)
-  {
-    ROS_INFO("Move robot to target to calibration location");
-  }
-  else{
-    targ_q.setRPY(0, 0, 0);
-    targ_transform.setOrigin(tf::Vector3(targ_x, targ_y, targ_z));
-    targ_transform.setRotation(targ_q);
-  }
+
+  targ_q.setRPY(0, 0, 0);
+  targ_transform.setOrigin(tf::Vector3(targ_x, targ_y, targ_z));
+  targ_transform.setRotation(targ_q);
+
   ROS_INFO("Sending target transform");
   target_broadcaster.sendTransform(
         tf::StampedTransform(targ_transform, ros::Time::now(), "base_link", "target_link"));
@@ -57,7 +53,6 @@ int main(int argc, char** argv)
 
   while (calibrating)
   {
-   int iters = 60;
    double rx = 0;
    double ry = 0;
    double rz = 0;
@@ -65,7 +60,7 @@ int main(int argc, char** argv)
    double x = 0;
    double y = 0;
    double z = 0;
-    for (int ind = 0; ind < iters; ind++)
+    for (int ind = 0; ind < num_iterations; ind++)
     {
       target_broadcaster.sendTransform(
           tf::StampedTransform(targ_transform, ros::Time::now(), "base_link", "target_link"));
@@ -80,13 +75,13 @@ int main(int argc, char** argv)
 
         // Take average
         // Note: There are better ways to average quaternions (https://stackoverflow.com/questions/12374087/average-of-multiple-quaternions)
-        rx += stamped.getRotation().x()/float(iters);
-        ry += stamped.getRotation().y()/float(iters);
-        rz += stamped.getRotation().z()/float(iters);
-        rw += stamped.getRotation().w()/float(iters);
-        x += stamped.getOrigin().x()/float(iters);
-        y += stamped.getOrigin().y()/float(iters);
-        z += stamped.getOrigin().z()/float(iters);
+        rx += stamped.getRotation().x()/float(num_iterations);
+        ry += stamped.getRotation().y()/float(num_iterations);
+        rz += stamped.getRotation().z()/float(num_iterations);
+        rw += stamped.getRotation().w()/float(num_iterations);
+        x += stamped.getOrigin().x()/float(num_iterations);
+        y += stamped.getOrigin().y()/float(num_iterations);
+        z += stamped.getOrigin().z()/float(num_iterations);
       }
       catch (tf::TransformException ex)
       {
@@ -113,8 +108,13 @@ int main(int argc, char** argv)
     ROS_ERROR("Calibrated camera location in base_link frame. Update these values in launch file");
     std::cout << "Link name: " << camera_link << '\n';
     std::cout << stamped.getOrigin()[0] << " " << stamped.getOrigin()[1] << " "
-              << stamped.getOrigin()[2] << " " << yaw << " "
-              << pitch << " " << roll << "\n";
+              << stamped.getOrigin()[2] << " " << stamped.getRotation().x() << " "
+              << stamped.getRotation().y() << " " << stamped.getRotation().z() << " " << stamped.getRotation().w() << "\n";
+
+    std::cout << "Inverse:\n";
+    std::cout << stamped.inverse().getOrigin().x() << " " << stamped.inverse().getOrigin().y() << " "
+              << stamped.inverse().getOrigin().z() << " " << stamped.inverse().getRotation().x() << " "
+              << stamped.inverse().getRotation().y() << " " << stamped.inverse().getRotation().z() << " " << stamped.inverse().getRotation().w() << "\n";
 
     ROS_ERROR(" Exit? y/n");
     char input;
