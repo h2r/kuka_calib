@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="cam_num" default="1"/>
+    <arg name="cam_num" default="1" />
+    <!-- Offset from world origin to center of AR tag -->
     <arg name="targ_x" default="0.0" />
     <arg name="targ_y" default="0.0" />
     <arg name="targ_z" default="0.0" />
@@ -8,29 +9,39 @@
     <arg name="marker_size" default="11.4" />
     <arg name="max_new_marker_error" default="0.08" />
     <arg name="max_track_error" default="0.2" />
+    <!-- Number of estimated transforms to average -->
     <arg name="num_iterations" default="300" />
     <arg name="cam_image_topic" default="$(eval '/cam_' + str(cam_num) + '/color/image_raw')" />
     <arg name="cam_info_topic" default="$(eval '/cam_' + str(cam_num) + '/color/camera_info')" />
-    <arg name="output_frame" default="$(eval '/cam_' + str(cam_num) + '_color_optical_frame')" />
+    <!-- Frame that calibration happens with -->
+    <arg name="calibration_frame" default="$(eval '/cam_' + str(cam_num) + '_color_optical_frame')" />
+    <!-- Output transfrom from world to this frame. Should be parent of all other camera links. -->
+    <arg name="camera_link" default="$(eval '/cam_' + str(cam_num) + '_link')" />
     <arg name="serial_no_camera" default="$(eval env('CAM_' + str(cam_num) + '_SERIAL'))" />
-    <arg name="rviz" default="true"/>
+    <arg name="calib_dir" default="$(find kuka_cam)/calib/" />
+    <arg name="rviz" default="false" />
 
-    <node name = "calibration_node" pkg="kuka_calib" type="extrinsic_calibration_node" output="screen" required="true">
-        <param name="targ_x"         type="double" value="$(arg targ_x)"/>
-        <param name="targ_y"         type="double" value="$(arg targ_y)"/>
-        <param name="targ_z"         type="double" value="$(arg targ_z)"/>
-        <param name="num_iterations" type="int"    value="$(arg num_iterations)" />
-        <param name="camera_link"    type="string" value="$(arg output_frame)" />
+    <node name="calibration_node_$(arg cam_num)" pkg="kuka_calib" type="extrinsic_calibration_node" output="screen" required="true">
+        <param name="targ_x"            type="double" value="$(arg targ_x)"/>
+        <param name="targ_y"            type="double" value="$(arg targ_y)"/>
+        <param name="targ_z"            type="double" value="$(arg targ_z)"/>
+        <param name="num_iterations"    type="int"    value="$(arg num_iterations)" />
+        <param name="camera_link"       type="string" value="$(arg camera_link)" />
+        <param name="calibration_frame" type="string" value="$(arg calibration_frame)" />
+        <param name="calib_dir"         type="string" value="$(arg calib_dir)" />
+        <param name="cam_num"           type="int"    value="$(arg cam_num)" />
     </node>
 
-    <node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
+    <node name="ar_track_alvar_$(arg cam_num)" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
         <param name="marker_size"           type="double" value="$(arg marker_size)" />
         <param name="max_new_marker_error"  type="double" value="$(arg max_new_marker_error)" />
         <param name="max_track_error"       type="double" value="$(arg max_track_error)" />
-        <param name="output_frame"          type="string" value="$(arg output_frame)" />
+        <param name="output_frame"          type="string" value="$(arg calibration_frame)" />
 
         <remap from="camera_image"  to="$(arg cam_image_topic)" />
         <remap from="camera_info"   to="$(arg cam_info_topic)" />
     </node>
+
+    <node if="$(arg rviz)" pkg="rviz" type="rviz" name="calib_viz_$(arg cam_num)" args="-d $(find kuka_calib)/config/calibration.rviz" />
 
 </launch>

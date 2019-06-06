@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="cam_1" default="on"/>
+    <arg name="cam_2" default="on"/>
+    <arg name="cam_3" default="on"/>
+    <arg name="cam_4" default="on"/>
+    <arg name="cam_5" default="on"/>
+    <include file="$(find kuka_calib)/launch/calibration.launch" if="$(eval cam_1 == 'on')">
+        <arg name="cam_num" value="1"/>
+    </include>
+    <include file="$(find kuka_calib)/launch/calibration.launch" if="$(eval cam_2 == 'on')">
+        <arg name="cam_num" value="2"/>
+    </include>
+    <include file="$(find kuka_calib)/launch/calibration.launch" if="$(eval cam_3 == 'on')">
+        <arg name="cam_num" value="3"/>
+    </include>
+    <include file="$(find kuka_calib)/launch/calibration.launch" if="$(eval cam_4 == 'on')">
+        <arg name="cam_num" value="4"/>
+    </include>
+    <include file="$(find kuka_calib)/launch/calibration.launch" if="$(eval cam_5 == 'on')">
+        <arg name="cam_num" value="5"/>
+    </include>
+
+</launch>
