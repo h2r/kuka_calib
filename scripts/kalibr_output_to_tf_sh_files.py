@@ -75,9 +75,8 @@ def saveTFsFromCalibFile(filename, base_camera_name, output_calib_directory):
     for cam_num in range(len(calib_yaml_dict))[1:]:
         # each transform
         calib_dict_key = 'cam' + str(cam_num)
-        transform_yaml_field = "T_cn_cnm" + str(cam_num)
         
-        T_cn_cnm_optical = np.array(calib_yaml_dict[calib_dict_key][transform_yaml_field])
+        T_cn_cnm_optical = np.array(calib_yaml_dict[calib_dict_key]["T_cn_cnm1"])
         # convert each frame from optical to link frame
         T_cn_cnm_link = opticalTF2LinkTF(T_cn_cnm_optical)
         cam_1_link_to_cam_n = np.matmul(running_transform, T_cn_cnm_link)
