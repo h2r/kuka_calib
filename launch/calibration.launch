@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="cam_num" default="1" />
+    <arg name="cam_num" default="3" />
     <!-- Offset from world origin to center of AR tag -->
     <arg name="targ_x" default="0.0" />
     <arg name="targ_y" default="0.0" />
