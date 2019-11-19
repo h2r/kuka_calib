@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="cam_num" default="1"/>
+    <arg name="cam_num" default="3"/>
     <include file="$(find kuka_cam)/launch/individual_cam.launch">
-        <arg name="cam_num" value="3"/>
+        <arg name="cam_num" value="$(arg cam_num)"/>
         <arg name="load_tf" value="true"/>
     </include>
     <include file="$(find kuka_cam)/launch/individual_cam.launch">
@@ -10,19 +10,16 @@
         <arg name="load_tf" value="false"/>
     </include>
     <node pkg="lcsr_tf_tools" type="interactive_transform_publisher" name="lcsr_tf_pub_cam_$(arg cam_num)" 
-         args= "$(eval
-            env('cam_' + str(cam_num) + '_x_pos') + ' ' +
-            env('cam_' + str(cam_num) + '_y_pos') + ' ' +
-            env('cam_' + str(cam_num) + '_z_pos') + ' ' +
-            env('cam_' + str(cam_num) + '_x_rot') + ' ' +
-            env('cam_' + str(cam_num) + '_y_rot') + ' ' +
-            env('cam_' + str(cam_num) + '_z_rot') + ' ' +
-            env('cam_' + str(cam_num) + '_w_rot') + ' ' +
-            '/world /cam_' + str(cam_num) + '_link rate=10'
-          )"/>
-    <param name="cam_1_on" type="bool" value="$(eval cam_num == 1)" />
-    <param name="cam_2_on" type="bool" value="$(eval cam_num == 2)" />
+        args= "$(eval
+            env('base_cam_x_pos') + ' ' +
+            env('base_cam_y_pos') + ' ' +
+            env('base_cam_z_pos') + ' ' +
+            env('base_cam_x_rot') + ' ' +
+            env('base_cam_y_rot') + ' ' +
+            env('base_cam_z_rot') + ' ' +
+            env('base_cam_w_rot') + ' ' +
+            '/world /base_cam_link rate=10'
+        )"
+    />
     <param name="cam_3_on" type="bool" value="true" />
-    <param name="cam_4_on" type="bool" value="$(eval cam_num == 4)" />
-    <param name="cam_5_on" type="bool" value="$(eval cam_num == 5)" />
 </launch>
