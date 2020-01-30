@@ -1,15 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="cam_num" default="3"/>
-    <include file="$(find kuka_cam)/launch/individual_cam.launch">
-        <arg name="cam_num" value="$(arg cam_num)"/>
-        <arg name="load_tf" value="true"/>
-    </include>
-    <include file="$(find kuka_cam)/launch/individual_cam.launch">
-        <arg name="cam_num" value="$(arg cam_num)"/>
-        <arg name="load_tf" value="false"/>
-    </include>
-    <node pkg="lcsr_tf_tools" type="interactive_transform_publisher" name="lcsr_tf_pub_cam_$(arg cam_num)" 
+    <!-- options are: cam_1, ..., cam_5, base_cam -->
+    <arg name="frame_to_calibrate" default="base_cam"/>
+    <arg name="base_cam_num" default="3"/>
+
+    <!-- TODO(mcorsaro): clean this up -->
+    <node pkg="lcsr_tf_tools" type="interactive_transform_publisher" name="lcsr_tf_pub_cam_$(arg frame_to_calibrate)"
         args= "$(eval
             env('base_cam_x_pos') + ' ' +
             env('base_cam_y_pos') + ' ' +
@@ -19,7 +15,18 @@
             env('base_cam_z_rot') + ' ' +
             env('base_cam_w_rot') + ' ' +
             '/world /base_cam_link rate=10'
-        )"
+        )" if="$(eval arg('frame_to_calibrate') == 'base_cam')"
     />
-    <param name="cam_3_on" type="bool" value="true" />
+    <node pkg="lcsr_tf_tools" type="interactive_transform_publisher" name="lcsr_tf_pub_cam_$(arg frame_to_calibrate)"
+        args= "$(eval
+            env(str(frame_to_calibrate) + '_x_pos') + ' ' +
+            env(str(frame_to_calibrate) + '_y_pos') + ' ' +
+            env(str(frame_to_calibrate) + '_z_pos') + ' ' +
+            env(str(frame_to_calibrate) + '_x_rot') + ' ' +
+            env(str(frame_to_calibrate) + '_y_rot') + ' ' +
+            env(str(frame_to_calibrate) + '_z_rot') + ' ' +
+            env(str(frame_to_calibrate) + '_w_rot') + ' ' +
+            '/base_cam_link /' + str(frame_to_calibrate) + '_link rate=10'
+        )" unless="$(eval arg('frame_to_calibrate') == 'base_cam')"
+    />
 </launch>
